@@ -6,27 +6,28 @@ from pipeline.stage2_address_validator import validate_address_azure, attempt_co
 
 
 def test_valid_address():
-    result = validate_address_azure("1200 Schafer St, Bismarck, ND, US, 58506")
+    result = validate_address_azure("Test Corp", "1200 Schafer St, Bismarck, ND, US, 58506")
     assert result['validation_status'] in ['valid', 'low_confidence']
     assert result['formatted_address'] is not None
     print("[PASS] test_valid_address")
 
 
 def test_empty_address():
-    result = validate_address_azure("")
+    result = validate_address_azure("Test Corp", "")
     assert result['validation_status'] == 'skipped'
     assert result['error_reason']      is not None
     print("[PASS] test_empty_address")
 
 
 def test_none_address():
-    result = validate_address_azure(None)
+    result = validate_address_azure("Test Corp", None)
     assert result['validation_status'] == 'skipped'
     print("[PASS] test_none_address")
 
 
 def test_correction_attempt():
     fake_row = {
+        'SOURCE_NAME': 'Test Corp',
         'street':  '1649 Horizon Pkwy',
         'city':    'Buford',
         'country': 'US'

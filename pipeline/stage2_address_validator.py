@@ -11,11 +11,20 @@ AZURE_MAPS_KEY = os.getenv("AZURE_MAPS_KEY")
 AZURE_MAPS_URL = "https://atlas.microsoft.com/search/address/json"
 
 
-def validate_address_azure(clean_address):
+# Global metrics
+TOTAL_API_CALLS = 0
+TOTAL_INPUT_TOKENS = 0
+TOTAL_OUTPUT_TOKENS = 0
+TOTAL_WEB_SEARCHES = 0
+
+
+def validate_address_azure(company_name, clean_address):
     """
-    Sends a clean address to Azure Maps API.
+    Sends a clean address (optionally concatenated with company name) to Azure Maps API.
     Returns validation result with status and geocoded data.
     """
+    global TOTAL_API_CALLS
+
     if not clean_address or not isinstance(clean_address, str):
         return {
             "validation_status": "skipped",
@@ -26,14 +35,18 @@ def validate_address_azure(clean_address):
             "error_reason":      "No address to validate"
         }
 
+    # Concatenation Rule
+    query = f"{company_name}, {clean_address}" if company_name and isinstance(company_name, str) else clean_address
+
     params = {
         "api-version":       "1.0",
         "subscription-key":  AZURE_MAPS_KEY,
-        "query":             clean_address,
+        "query":             query,
         "limit":             1
     }
 
     try:
+        TOTAL_API_CALLS += 1
         response = requests.get(AZURE_MAPS_URL, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
@@ -98,6 +111,7 @@ def attempt_correction(row):
     If address validation fails, tries to correct by
     building a simpler fallback query using just
     street + city + country and re-validating.
+    Drops company name from fallback query.
     """
     fallback_parts = [
         row.get('street'),
@@ -109,7 +123,8 @@ def attempt_correction(row):
     if not fallback:
         return None, "Could not build fallback address"
 
-    result = validate_address_azure(fallback)
+    # We drop company_name on fallback (pass None)
+    result = validate_address_azure(None, fallback)
     return result, fallback
 
 
@@ -130,8 +145,11 @@ def run_validator(input_path, output_path, flagged_path):
     validation_results = []
     print("\n[Step 1] Validating addresses via Azure Maps...")
 
+    df['api_calls_used'] = 0
+
     for idx, row in df.iterrows():
-        result = validate_address_azure(row.get('clean_address'))
+        df.at[idx, 'api_calls_used'] += 1
+        result = validate_address_azure(row.get('SOURCE_NAME'), row.get('clean_address'))
         validation_results.append(result)
         time.sleep(0.1)  # avoid hitting rate limits
 
@@ -158,6 +176,10 @@ def run_validator(input_path, output_path, flagged_path):
 
     correction_results = []
     for idx, row in failed_df.iterrows():
+        if df.at[idx, 'api_calls_used'] >= 7:
+            continue
+            
+        df.at[idx, 'api_calls_used'] += 1
         corrected_result, fallback_used = attempt_correction(row)
         if corrected_result:
             correction_results.append({
@@ -209,6 +231,11 @@ def run_validator(input_path, output_path, flagged_path):
     print(f"  Valid:              {valid_count}")
     print(f"  Corrected:          {corrected_count}")
     print(f"  Manual review:      {len(manual_df)}")
+    print(f"\n========== METRICS ==========")
+    print(f"  Total API Calls:         {TOTAL_API_CALLS}")
+    print(f"  Total Input Tokens:      {TOTAL_INPUT_TOKENS}")
+    print(f"  Total Output Tokens:     {TOTAL_OUTPUT_TOKENS}")
+    print(f"  Total Web Searches:      {TOTAL_WEB_SEARCHES}")
 
     return validated_df, manual_df
 

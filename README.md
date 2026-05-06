@@ -231,3 +231,13 @@ The pipeline supports **resume** — if interrupted, it will pick up from the la
 This project transforms unstructured, inconsistent MDM records into clean, validated, enrichment-ready data. By addressing data quality issues at the source, it enables reliable enrichment and improves the overall integrity of customer master data.
 
 **75% of failed-enrichment records recovered. Manual review burden cut in half. Every AI claim is independently auditable via cited source URLs.**
+
+---
+
+## Contributors
+[Aashlesha Rajput](https://github.com/Aash27)
+[Rachietaa Ramesh Rao](https://github.com/Rachietaa)
+[Pablo Garces](https://github.com/PabloG55)
+[David Caballero](https://github.com/DminusC)
+[Purva Jagtap](https://github.com/purva115)
+

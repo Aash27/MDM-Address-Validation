@@ -235,9 +235,9 @@ This project transforms unstructured, inconsistent MDM records into clean, valid
 ---
 
 ## Contributors
-[Aashlesha Rajput](https://github.com/Aash27)
-[Rachietaa Ramesh Rao](https://github.com/Rachietaa)
-[Pablo Garces](https://github.com/PabloG55)
-[David Caballero](https://github.com/DminusC)
-[Purva Jagtap](https://github.com/purva115)
+1. [Aashlesha Rajput](https://github.com/Aash27)
+2. [Rachietaa Ramesh Rao](https://github.com/Rachietaa)
+3. [Pablo Garces](https://github.com/PabloG55)
+4. [David Caballero](https://github.com/DminusC)
+5. [Purva Jagtap](https://github.com/purva115)
 
